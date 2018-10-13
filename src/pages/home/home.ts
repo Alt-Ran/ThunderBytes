@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NavController } from 'ionic-angular';
+import {AlertController, NavController, Platform} from 'ionic-angular';
 import { transition } from 'd3-transition';
 import {HttpClient} from '@angular/common/http';
 
@@ -12,6 +12,10 @@ import * as d3Shape from "d3-shape";
 import * as d3Interpolate from "d3-interpolate";
 import * as d3Transition from 'd3-transition';
 import * as $ from 'jquery'
+import {LocalNotifications} from "@ionic-native/local-notifications";
+import {Observable} from "rxjs/Observable";
+import {influxData} from "../../app/models/InfluxData";
+import * as _ from 'underscore';
 
 // --------------------------- Start variabili grafico sensori ---------------------------
 //var x = Chart;
@@ -22,7 +26,7 @@ var radius;
 // --------------------------- End variabili grafico sensori ---------------------------
 
 var z = 0;                  // variabile per calcolare la corrente dell'intero impianto
-var ip = "192.168.1.125";
+var ip = "localhost";
 
 @Component({
   selector: 'page-home',
@@ -30,7 +34,7 @@ var ip = "192.168.1.125";
 })
 export class HomePage {
 
-
+  retrivedData : influxData;
 
   notification(){
     console.log("notifiche");
@@ -44,7 +48,7 @@ export class HomePage {
       $('.arcMachine').remove();
 
 
-      this.http.get("http://" + ip + ":5000/correnteForno")
+      this.http.get("http://" + ip + ":5000/correnteTotale")
         .subscribe(data => {
             this.drawPie(data);                                        //chiamata alla funzione per disegnare il grafico delle macchine
           },
@@ -75,7 +79,30 @@ export class HomePage {
   svg: any;
   data;
 
-  constructor(public navCtrl: NavController, private http: HttpClient) {
+  constructor(public navCtrl: NavController,
+              private http: HttpClient,
+              private localNotifications: LocalNotifications,
+              public alertCtrl: AlertController,
+              private plt:Platform,) {
+
+
+
+    Observable
+      .interval(10000)
+      .timeInterval()
+      .flatMap(() => this.getAllInfluxData())
+      .subscribe(data => {
+        console.log("log: "+this.retrivedData);
+        let dataAnalisys = _.max(this.retrivedData, function (item) {
+          return item.temperatura;
+        });
+        console.log(dataAnalisys.temperatura);
+        if (dataAnalisys.temperatura>0)
+          this.scheduleNotifications();
+      });
+
+
+
     this.getDatakwHFactory();
 
     /*assegno grandezza e altezza del grafico delle macchine*/
@@ -87,7 +114,32 @@ export class HomePage {
     width = this.width;
     height = this.height;
     radius = this.radius;
+
+    //INIZIO NOTIFICHE
+    this.plt.ready().then((rdy)=>{
+      // @ts-ignore
+      this.localNotifications.on('click',(notification, state)=>{
+        let json=JSON.parse(notification.data);
+
+        let alert=this.alertCtrl.create({
+          title: notification.title,
+          subTitle: json.mydata
+        });
+        alert.present();
+      });
+    });
+
   }
+
+  //Chiamata di notifica
+  public scheduleNotifications(){
+    this.localNotifications.schedule({
+      title: 'prova',
+      text: 'il valore è fuori norma',
+      data: {mydata:'metadata'}
+    })
+  }
+
 
   /*funzione che si avvia automaticamente dopo il costruttore e avvio
   * le funzioni per disegnare il grafico delle macchine*/
@@ -100,7 +152,7 @@ export class HomePage {
 
   // ----------------------------------------- Start chimata API -----------------------------------------
   async getData(){
-    await this.http.get("http://" + ip + ":5000/correnteForno")
+    await this.http.get("http://" + ip + ":5000/correnteTotale")
       .subscribe(data =>{
           this.drawPie(data);                                        //chiamata alla funzione per disegnare il grafico delle macchine
           this.drawLegend();                                         //chiamata alla funzione per disegnare la legenda delle macchine
@@ -110,12 +162,23 @@ export class HomePage {
         })
   }
 
+  async getAllInfluxData(){
+   await this.http.get<influxData>("http://" + ip + ":5000/data")
+      .subscribe(data =>{
+          this.retrivedData=data;
+        return data;
+        },
+        error =>{
+          alert("il server non risponde... attendi e spera");
+        });
+  }
+
   getDatakwHFactory(){
     this.http.get("http://" + ip + ":5000/correnteImpianto")
       .subscribe(data =>{
           for(var i=0; i<=2; i++) {
-            if (data[i].sum) {
-              var x = data[i].sum;
+            if (data[i].corrente) {
+              var x = data[i].corrente;
               z = z + x;
             } else {
               this.correnteImpianto += 0
@@ -133,7 +196,7 @@ export class HomePage {
   // ---------------------------- Start inizializzo il grafico delle macchine ---------------------------
   initSvg() {
     this.color = d3Scale.scaleOrdinal()
-      .range(["#FFA500", "#00FF00", "#FF0000", "#6b486b", "#FF00FF", "#d0743c", "#00FA9A"]);
+      .range(["#3ACCE1", "#D9DBDC", "#60DD49", "#FFBF00", "#EA2B1F", "#DD49A9", "#37FF00"]);
 
     this.arc = d3Shape.arc()
       .outerRadius(this.radius - 60)
@@ -164,7 +227,7 @@ export class HomePage {
     let bolt = this.svg.selectAll(".bolt")
       .data(data)
       .enter().append("g")
-      .attr("class", "bolt")
+      .attr("class", "bolt");
 
     bolt.append('text')
       .attr("x", -45)
@@ -242,9 +305,8 @@ export class HomePage {
   svgLegned4: any;
   newdataL: any;
   newdatah: any = 0;
-  w:number = 500;
-  h:number = 100;
-
+  w:number = 550;
+  h:number = 140;
 
 
   drawLegend(){
@@ -271,7 +333,7 @@ export class HomePage {
           return "translate(" + (this.newdataL) + ","+ this.newdatah +")"
 
         }
-      })
+      });
 
     legend4.append('rect')
       .attr("x", 0)
@@ -292,6 +354,14 @@ export class HomePage {
       .style("font-family", "Roboto");
   }
 
+
+
+
+
+
+
+  //TODO GESTIONE CHIAMATA E NOTIIFICA DATI
+
 }
 
 var pie;
@@ -311,7 +381,7 @@ function prova() {
     .padAngle(.03);
 
   color = d3Scale.scaleOrdinal()
-    .range(["#FFA500", "#00FF00", "#FF0000", "#6b486b", "#FF00FF", "#d0743c", "#00FA9A"]);
+    .range(["#F6511D", "#FFB400", "#00A6ED", "#7FB800", "#0D2C54", "#F0C808", "#FFF1D0"]);
 
   arc = d3Shape.arc()
     .outerRadius(radius - 100)
@@ -393,5 +463,8 @@ function prova() {
   }
 
   setTimeout(restOfTheData,1000);
+
+
+
 }
 

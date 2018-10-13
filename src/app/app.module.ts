@@ -26,7 +26,7 @@ import {MachinePage} from "../pages/machine/machine";
 import {GaugeModule} from "angular-gauge";
 import {SinglemachinePage} from "../pages/singlemachine/singlemachine";
 import {SplashPage} from "../pages/splash/splash";
-
+import { NgCircleProgressModule } from 'ng-circle-progress';
 
 
 
@@ -65,10 +65,7 @@ var config = {
     JustgageModule,
     ChartsModule,
     GaugeModule.forRoot(),
-
-
-
-
+    NgCircleProgressModule.forRoot({})
 
   ],
   bootstrap: [IonicApp],
@@ -90,6 +87,7 @@ var config = {
     {provide: ErrorHandler, useClass: IonicErrorHandler},
     GooglePlus,
     Provider,
+    LocalNotifications
 
 
   ]
