@@ -3,7 +3,6 @@ import {Nav, Platform, ModalController} from 'ionic-angular';
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { HomePage } from '../pages/home/home';
-import { ListPage } from '../pages/list/list';
 import {LoginPage} from "../pages/login/login";
 import {Provider} from "../providers/provider/provider";
 import {SettingsPage} from "../pages/settings/settings";
@@ -33,7 +32,6 @@ export class MyApp {
     // used for an example of ngFor and navigation
     this.pages = [
       { title: 'Home', component: HomePage },
-      { title: 'List', component: ListPage },
       { title: 'Machine', component: MachinePage },
       { title: 'Settings', component: SettingsPage}
     ];
@@ -68,8 +66,4 @@ export class MyApp {
     this.provider.logout();
     this.nav.setRoot(LoginPage);
   }
-
-
-
-
 }

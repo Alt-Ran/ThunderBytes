@@ -4,12 +4,6 @@ import {Provider} from "../../providers/provider/provider";
 import {UserInfo} from "../../app/models/UserInfo";
 import {LoginPage} from "../login/login";
 import {App} from 'ionic-angular';
-/**
- * Generated class for the SettingsPage page.
- *
- * See https://ionicframework.com/docs/components/#navigation for more info on
- * Ionic pages and navigation.
- */
 
 @IonicPage()
 @Component({
@@ -19,38 +13,24 @@ import {App} from 'ionic-angular';
 export class SettingsPage {
 
   autentication;
+  user:UserInfo = new UserInfo();
+
   constructor(public navCtrl: NavController,
               public navParams: NavParams,
               private app:App,
-              private provider: Provider) {
-    console.log("mail"+this.provider.email);
-
-    this.getUserInfo();
-
-
-  }
-
-  user:UserInfo = new UserInfo();
-
-  ionViewDidLoad() {
-    console.log('ionViewDidLoad SettingsPage');
-  }
-
+              private provider: Provider) { this.getUserInfo(); }
 
 
   getUserInfo(){
     let autentication= this.provider.autentication;
     console.log("autenticazione: "+autentication );
-    if(autentication=='google'){
+    if(autentication=='google') {
       this.user = this.provider.user;
-    console.log(this.user)}
-    else{
+    }else{
       this.user.givenName="Guest";
       this.user.imageUrl="../../assets/imgs/guest.png";
       this.user.familyName="-";
-      console.log(this.provider.user.email);
       this.user.email=this.provider.email;
-
     }
 
   }

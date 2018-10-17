@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
-import {AlertController, IonicPage, NavController, NavParams} from 'ionic-angular';
+import {AlertController, IonicPage, NavController} from 'ionic-angular';
 import {Provider} from "../../providers/provider/provider";
-import {HomePage} from "../home/home";
 import {User} from "../../app/models/User";
 import {AngularFireAuth} from "@angular/fire/auth";
 import {TabsPage} from "../tabs/tabs";
@@ -89,8 +88,4 @@ export class LoginPage {
     });
     this.provider.autentication='email';
   }
-
-
-
-
 }

@@ -16,7 +16,7 @@ var boolCreateGraphsS = false;
 // --------------------------- End variabili grafico sensori ---------------------------
 
 var z = 0;                  // variabile per calcolare la corrente dell'intero impianto
-var ip = "192.168.1.121";
+var ip = "192.168.1.125";   //indirizzo ip  per le richieste api
 
 @Component({
   selector: 'page-home',
@@ -30,6 +30,7 @@ export class HomePage {
     console.log("notifiche");
   }
 
+  // refresh della pagina attarverso lo swipe up
   doRefresh(refresher){
     if (document.readyState === "complete") {                         // svolge il tutto solo quando l'intera pagina e stata caricata
       this.getDatakwHFactory();
@@ -51,18 +52,19 @@ export class HomePage {
     }
   }
 
+  //corrente intero impianto
   correnteImpianto: number = 0;
 
+  //grandezze del grafico
   margin = {top: 30, right: 20, bottom: 10, left: 20};
   width: number;
   height: number;
   radius: number;
-
   legendRectSize: number = 15;
   legendSpacing: number = 10;
   legendHeight: number = this.legendRectSize + this.legendSpacing;
 
-
+  //variabili grandezze per la creazione del grafico
   arc: any;
   pie: any;
   color: any;
@@ -74,8 +76,6 @@ export class HomePage {
               private localNotifications: LocalNotifications,
               public alertCtrl: AlertController,
               private plt:Platform,) {
-
-
 
     Observable
       .interval(10000)

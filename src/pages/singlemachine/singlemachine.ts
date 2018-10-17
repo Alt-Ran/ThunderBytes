@@ -12,7 +12,7 @@ import {influxData} from "../../app/models/InfluxData";
 })
 export class SinglemachinePage {
 
-  ip="192.168.1.121";
+  ip="192.168.1.125";
 
   listSensors:Array<string> = [];
   firstSensor: string;
