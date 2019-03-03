@@ -5,7 +5,6 @@ import {IonicApp, IonicErrorHandler, IonicModule} from 'ionic-angular';
 
 import { MyApp } from './app.component';
 import { HomePage } from '../pages/home/home';
-import { ListPage } from '../pages/list/list';
 
 import {IonicStorageModule} from '@ionic/storage'
 
@@ -27,8 +26,8 @@ import {GaugeModule} from "angular-gauge";
 import {SinglemachinePage} from "../pages/singlemachine/singlemachine";
 import {SplashPage} from "../pages/splash/splash";
 import { NgCircleProgressModule } from 'ng-circle-progress';
-
-
+import {LocalNotifications} from "@ionic-native/local-notifications";
+import {TabsPage} from "../pages/tabs/tabs";
 
 
 var config = {
@@ -44,12 +43,12 @@ var config = {
   declarations: [
     MyApp,
     HomePage,
-    ListPage,
     LoginPage,
     SettingsPage,
     MachinePage,
     SinglemachinePage,
-    SplashPage
+    SplashPage,
+    TabsPage
 
 
   ],
@@ -65,19 +64,19 @@ var config = {
     JustgageModule,
     ChartsModule,
     GaugeModule.forRoot(),
-    NgCircleProgressModule.forRoot({})
+    NgCircleProgressModule.forRoot({ })
 
   ],
   bootstrap: [IonicApp],
   entryComponents: [
     MyApp,
     HomePage,
-    ListPage,
     LoginPage,
     SettingsPage,
     MachinePage,
     SinglemachinePage,
-    SplashPage
+    SplashPage,
+    TabsPage
 
 
   ],

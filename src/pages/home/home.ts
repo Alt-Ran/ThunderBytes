@@ -1,16 +1,10 @@
 import { Component } from '@angular/core';
 import {AlertController, NavController, Platform} from 'ionic-angular';
-import { transition } from 'd3-transition';
 import {HttpClient} from '@angular/common/http';
-
-//import {PieChart} from '../../data/data'
-//import {Chart} from '../../data/data'
 
 import * as d3 from 'd3-selection';
 import * as d3Scale from "d3-scale";
 import * as d3Shape from "d3-shape";
-import * as d3Interpolate from "d3-interpolate";
-import * as d3Transition from 'd3-transition';
 import * as $ from 'jquery'
 import {LocalNotifications} from "@ionic-native/local-notifications";
 import {Observable} from "rxjs/Observable";
@@ -18,15 +12,11 @@ import {influxData} from "../../app/models/InfluxData";
 import * as _ from 'underscore';
 
 // --------------------------- Start variabili grafico sensori ---------------------------
-//var x = Chart;
 var boolCreateGraphsS = false;
-var width;
-var height;
-var radius;
 // --------------------------- End variabili grafico sensori ---------------------------
 
 var z = 0;                  // variabile per calcolare la corrente dell'intero impianto
-var ip = "localhost";
+var ip = "192.168.1.125";   //indirizzo ip  per le richieste api
 
 @Component({
   selector: 'page-home',
@@ -40,6 +30,7 @@ export class HomePage {
     console.log("notifiche");
   }
 
+  // refresh della pagina attarverso lo swipe up
   doRefresh(refresher){
     if (document.readyState === "complete") {                         // svolge il tutto solo quando l'intera pagina e stata caricata
       this.getDatakwHFactory();
@@ -61,18 +52,19 @@ export class HomePage {
     }
   }
 
+  //corrente intero impianto
   correnteImpianto: number = 0;
 
+  //grandezze del grafico
   margin = {top: 30, right: 20, bottom: 10, left: 20};
   width: number;
   height: number;
   radius: number;
-
   legendRectSize: number = 15;
   legendSpacing: number = 10;
   legendHeight: number = this.legendRectSize + this.legendSpacing;
 
-
+  //variabili grandezze per la creazione del grafico
   arc: any;
   pie: any;
   color: any;
@@ -85,14 +77,11 @@ export class HomePage {
               public alertCtrl: AlertController,
               private plt:Platform,) {
 
-
-
     Observable
       .interval(10000)
       .timeInterval()
       .flatMap(() => this.getAllInfluxData())
       .subscribe(data => {
-        console.log("log: "+this.retrivedData);
         let dataAnalisys = _.max(this.retrivedData, function (item) {
           return item.temperatura;
         });
@@ -109,11 +98,6 @@ export class HomePage {
     this.width = 900 - this.margin.left - this.margin.right ;
     this.height = 500 - this.margin.top - this.margin.bottom;
     this.radius = Math.min(this.width, this.height) / 2;
-
-    /*utilizzo la stessa grandezza del grafico macchine per il grafico dei sensori*/
-    width = this.width;
-    height = this.height;
-    radius = this.radius;
 
     //INIZIO NOTIFICHE
     this.plt.ready().then((rdy)=>{
@@ -143,8 +127,9 @@ export class HomePage {
 
   /*funzione che si avvia automaticamente dopo il costruttore e avvio
   * le funzioni per disegnare il grafico delle macchine*/
-  async ionViewDidEnter() {
+  async ionViewDidLoad() {
     this.initSvg();
+
     this.data = await this.getData();
 
   }
@@ -163,7 +148,7 @@ export class HomePage {
   }
 
   async getAllInfluxData(){
-   await this.http.get<influxData>("http://" + ip + ":5000/data")
+   await this.http.get<influxData>("http://" + ip + ":5000/dataTotale")
       .subscribe(data =>{
           this.retrivedData=data;
         return data;
@@ -174,7 +159,7 @@ export class HomePage {
   }
 
   getDatakwHFactory(){
-    this.http.get("http://" + ip + ":5000/correnteImpianto")
+    this.http.get("http://" + ip + ":5000/correnteTotale")
       .subscribe(data =>{
           for(var i=0; i<=2; i++) {
             if (data[i].corrente) {
@@ -194,6 +179,7 @@ export class HomePage {
   // ----------------------------------------- End chimata API ------------------------------------------*/
 
   // ---------------------------- Start inizializzo il grafico delle macchine ---------------------------
+
   initSvg() {
     this.color = d3Scale.scaleOrdinal()
       .range(["#3ACCE1", "#D9DBDC", "#60DD49", "#FFBF00", "#EA2B1F", "#DD49A9", "#37FF00"]);
@@ -245,7 +231,7 @@ export class HomePage {
     g.append("path").attr("d", this.arc)
       .style("fill", (d: any) => this.color(d.data.nomeMacchina))
       .attr("class", (d: any) => "arcMachine")
-      .on("click", function (d) {
+      .on("click", (d: any) => {
 
         $('div.headerSensors').show();
 
@@ -276,7 +262,7 @@ export class HomePage {
           .style("font-family", "Cocogoose");
 
         g.append("text")
-          .attr("x", -45)
+          .attr("x", -75)
           .attr("id", "text")
           .attr("y", 65)
           .attr("dy", ".35em")
@@ -284,17 +270,6 @@ export class HomePage {
           .style("font-size", "25px")
           .style("font-family", "GeosansLight");
 
-
-        switch (d.data.nomeMacchina) {
-          case "fornoCottura":
-            //x = PieChart;
-            //prova();
-            break;
-          case "fornoRiscaldamento":
-            //x = Chart;
-            //prova();
-            break;
-        }
       });
   }
 
@@ -308,13 +283,14 @@ export class HomePage {
   w:number = 550;
   h:number = 140;
 
-
+  //funzione per disegnare il menu
   drawLegend(){
     this.svgLegned4 = d3.select(".legend4").append("svg")
       .attr("width", this.width)
       .attr("height", this.h - 50)
       .attr("class", "shadow");
 
+    // credo il menu
     let legend4 = this.svgLegned4.selectAll('.legends4')
       .data(this.color.domain())
       .enter().append('g')
@@ -328,13 +304,14 @@ export class HomePage {
             this.dataL = 0;
             this.newdatah += 25;
           }
-          this.newdataL = this.dataL
-          this.dataL += d.length + this.offset
+          this.newdataL = this.dataL;
+          this.dataL += d.length + this.offset;
           return "translate(" + (this.newdataL) + ","+ this.newdatah +")"
 
         }
       });
 
+    // menu prima del pgrafico rappresentante il nome delle macchine relative hai colori
     legend4.append('rect')
       .attr("x", 0)
       .attr("y", 0)
@@ -361,110 +338,6 @@ export class HomePage {
 
 
   //TODO GESTIONE CHIAMATA E NOTIIFICA DATI
-
-}
-
-var pie;
-var color;
-var arc;
-var svg;
-var path;
-var translateHeight = (Math.min(width, height) / 2) - 80;
-var translateWidth = Math.min(width, height) / 2;
-
-function prova() {
-  boolCreateGraphsS = true;
-
-  pie = d3Shape.pie()
-    .value((d: any) => d.sensori)
-    .sort(null)
-    .padAngle(.03);
-
-  color = d3Scale.scaleOrdinal()
-    .range(["#F6511D", "#FFB400", "#00A6ED", "#7FB800", "#0D2C54", "#F0C808", "#FFF1D0"]);
-
-  arc = d3Shape.arc()
-    .outerRadius(radius - 100)
-    .innerRadius(80);
-
-  svg = d3.select("#chart")
-    .append("svg")
-    .attr("width", '100%')
-    .attr("height", '100%')
-    .attr('viewBox','0 0 '+Math.min(width, height)+' '+Math.min(width, height))
-    .attr("class", "shadow")
-    .attr("class", "fuck")
-    .append('g')
-    .attr("transform", "translate(" + Math.min(width, height) / 2 + "," + (radius - 100) + ")");
-
-  path = svg.selectAll('path')
-    .data(pie())
-    .enter()
-    .append('path')
-    .attr("d", arc)
-    .style("fill", (d: any) => color(d.data.x))
-    .transition()
-    .duration(1000)
-    .attrTween("d", (d: any) => {
-      var interpolate = d3Interpolate.interpolate({startAngle: 0, endAngle: 0}, d);
-      return function (t) {
-        return arc(interpolate(t));
-      };
-    });
-
-  path = d3Transition.transition();
-
-
-  var restOfTheData = function () {
-    svg.selectAll("text")
-      .data(pie())
-      .enter()
-      .append("text")
-      .transition()
-      .duration(200)
-      .attr("transform", (d: any) => {
-        return "translate(" + arc.centroid(d) + ")";
-      })
-      .attr("dy", ".4em")
-      .attr("text-anchor", "middle")
-      .text((d: any) => d.data.sensori)
-      .style("fill", "#fff")
-      .style("font-size", "20px");
-
-    var legendRectSize = 15;
-    var legendSpacing = 10;
-    var legendHeight = legendRectSize + legendSpacing;
-
-    var legend = svg.selectAll('.legend')
-      .data(color.domain())
-      .enter()
-      .append('g')
-      .attr("class", "legend")
-      .attr("transform", function (d, i) {
-        return 'translate(-35,' + ((i * legendHeight) - 50 + ')');
-      });
-
-    legend.append('rect')
-      .attr("width", legendRectSize)
-      .attr("height", legendRectSize)
-      .style("fill", (d: any) => color(d))
-      .style("stroke", "#fff");
-
-
-    legend.append('text')
-      .attr("x", 25)
-      .attr("y", 15)
-      .text(function (d) {
-        return d;
-      })
-      .style("fill", "#237")
-      .style("font-size", "18px")
-      .style("font-family", "Cocogoose");
-  }
-
-  setTimeout(restOfTheData,1000);
-
-
 
 }
 

@@ -1,10 +1,9 @@
 <ion-header>
   <ion-navbar>
-    <!--<button ion-button menuToggle>
+    <button ion-button menuToggle>
       <ion-icon name="menu" class="styleIcon"></ion-icon>
-    </button>-->
+    </button>
     <ion-title class="title">Dashboard</ion-title>
-    <div class="notifica styleIcon" value="5" float-right (click)="notification()"><i class="fa fa-exclamation-triangle fa-2x" aria-hidden="true"></i></div>
   </ion-navbar>
 </ion-header>
 
@@ -25,12 +24,10 @@
   </div>
 
   <!--Primo grafico, nel quale viene riportato il consumo del singolo macchinario. Cliccabile.-->
-  <!--<div class="headerMachine">Macchine:</div>-->
   <div class="legend4"></div>
   <div id="pieChart" class="chart-container"></div>
 
   <!--Seccondo grafico, nel quale viene riportato il consumo del singolo senore del macchinario selezionato-->
-  <!--<div class="headerSensors">Sensori: </div>-->
   <div id="chart" class="chart-container"></div>
 
 </ion-content>

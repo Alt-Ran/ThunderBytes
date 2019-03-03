@@ -1,13 +1,9 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
 import {Provider} from "../../providers/provider/provider";
-
-/**
- * Generated class for the SettingsPage page.
- *
- * See https://ionicframework.com/docs/components/#navigation for more info on
- * Ionic pages and navigation.
- */
+import {UserInfo} from "../../app/models/UserInfo";
+import {LoginPage} from "../login/login";
+import {App} from 'ionic-angular';
 
 @IonicPage()
 @Component({
@@ -16,22 +12,31 @@ import {Provider} from "../../providers/provider/provider";
 })
 export class SettingsPage {
 
+  autentication;
+  user:UserInfo = new UserInfo();
+
   constructor(public navCtrl: NavController,
               public navParams: NavParams,
-              private provider: Provider) {
-    this.getUserInfo();
-  }
-
-  user;
-
-  ionViewDidLoad() {
-    console.log('ionViewDidLoad SettingsPage');
-  }
+              private app:App,
+              private provider: Provider) { this.getUserInfo(); }
 
 
   getUserInfo(){
-    this.user = this.provider.user;
-    console.log(JSON.stringify(this.user));
+    let autentication= this.provider.autentication;
+    console.log("autenticazione: "+autentication );
+    if(autentication=='google') {
+      this.user = this.provider.user;
+    }else{
+      this.user.givenName="Guest";
+      this.user.imageUrl="../../assets/imgs/guest.png";
+      this.user.familyName="-";
+      this.user.email=this.provider.email;
+    }
+
   }
 
+  logout() {
+    this.provider.logout();
+    this.app.getRootNav().setRoot(LoginPage);
+  }
 }

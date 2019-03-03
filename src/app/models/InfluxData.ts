@@ -1,6 +1,7 @@
+
 export interface influxData {
   time :Date,
-  amperomentro: number,
+  amperometro: number,
   corrente:number,
   nomeMacchina:string,
   rpm:number,
